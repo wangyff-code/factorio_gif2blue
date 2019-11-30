@@ -121,34 +121,18 @@ class gen_class:
         self.clock_mat = 0
         self.ram_mat = 0
         self.display_mat = 0
+        self.slip_size = 16
     def read_flam(self,flam_in):
         self.flam_list = flam_in
         self.flam_number = len(flam_in)
-        print(flam_in[0])
         self.y_size,self.x_size=flam_in[0].shape
-
-
-def read_flam():
-    f1 = np.array([[1,1,0],
-                   [0,1,0],
-                   [0,0,0]])
-
-    f2 = np.array([[0,1,0],
-                   [0,1,0],
-                   [0,1,1]])
-    
-    f3 = np.array([[0,0,0],
-                   [0,1,0],
-                   [0,1,1]])
-
-    return [f1,f2,f3]
 
 
 
 
 
 def gen_ram_mat(gen):
-    const_number = gen.x_size//18 + 1
+    const_number = gen.x_size//gen.slip_size + 1
     ram_mat=np.zeros((const_number+1,gen.flam_number),dtype=int)
     for x in range(0,gen.flam_number):
         for y in range(0,const_number+1):
@@ -157,22 +141,19 @@ def gen_ram_mat(gen):
     gen.ram_mat = ram_mat
 
 
-def split_flam(flam):
+def split_flam(gen,flam):
     temp_list = []
     data_list = []
-    slip_size = 15
     y_size,x_size = flam.shape
     for x in range(0,x_size):
         number = 0
         for y in range(0,y_size):
-            print(flam[y][x])
+            number=number << 1
             if flam[y][x] == 255:
-                number = number*2 + 1
-            else:
-                number = number*2
+                number=number + 1
         temp_list.append([x,number])
-    for i in range(0,x_size//slip_size+1):
-        data_list.append(temp_list[i*slip_size:(i+1)*slip_size])
+    for i in range(0,x_size//gen.slip_size+1):
+        data_list.append(temp_list[i*gen.slip_size:(i+1)*gen.slip_size])
     return data_list
 
 
@@ -205,10 +186,9 @@ def gen_const(id_,x,y,p1_gen,p1_red,p2_gen,p2_red,data_list):
     cost_dir['position']['x'] = float(x)
     cost_dir['position']['y'] = float(y)
     t_dir=gen_connect(p1_gen,p1_red,p2_gen,p2_red)
-    cost_dir['connections']['1']['green'] = copy.deepcopy(t_dir)
+    cost_dir['connections'] = copy.deepcopy(t_dir)
     connect_list = []
     for i in range(0,len(data_list)):
-        print(data_list)
         data_dir["signal"]["name"] =  sig_list[data_list[i][0]]
         data_dir["count"] = int(data_list[i][1])
         data_dir["index"] = int(i+1)
@@ -232,27 +212,27 @@ def gen_led(id_,x,y,p1_gen):
     return copy.deepcopy(led_dir)
 
 def place_const(ram_mat,data_list,x,y,y_size):
-    if y == 0:
-        up_head = ram_mat[y-2][x]
-    else:
-        up_head = ram_mat[y-1][x]
     if y == y_size-1:
-        t = gen_const(ram_mat[y][x],-x,y,p1_gen=[up_head],p1_red=[],p2_gen=[],p2_red=[],data_list= data_list[y-1])
+        t = gen_const(ram_mat[y][x],-x,y,p1_gen=[ram_mat[y-1][x]],p1_red=[],p2_gen=[],p2_red=[],data_list= data_list[y-1])
     else:
-        t = gen_const(ram_mat[y][x],-x,y,p1_gen=[up_head,ram_mat[y+1][x]],p1_red=[],p2_gen=[],p2_red=[],data_list= data_list[y-1])
+        t = gen_const(ram_mat[y][x],-x,y,p1_gen=[ram_mat[y-1][x],ram_mat[y+1][x]],p1_red=[],p2_gen=[],p2_red=[],data_list= data_list[y-1])
     return copy.deepcopy(t)
 
 
 
-def place_pow(gen,x):
-    t = gen_pow(gen.ram_mat[1][x],-x,0)
-    return copy.deepcopy(t)
+def place_pow(gen,x,y,x_st,y_st,num):
+    for i in range(0,num):
+        t=gen_pow(gen.id_counter,x,y)
+        x += x_st
+        y += y_st
+        gen.id_counter += 1
+        gen.item_list.append(t)
 
 
 def place_ram(gen):
     y_size,x_size=gen.ram_mat.shape
     for x in range(0,x_size):
-        data_list = split_flam(gen.flam_list[x])
+        data_list = split_flam(gen,gen.flam_list[x])
         for y in range(0,y_size):
             if y == 0:
                 t=place_cmp(gen,x,x_size)
@@ -277,7 +257,7 @@ def pack_dir(gen):
     st = zlib.compress(st)
     out = base64.b64encode(st).decode()
     out = '0' + out
-    f = open('plue.txt','w')
+    f = open('blue_code.txt','w')
     f.write(out)
     f.close()
     return out
@@ -294,7 +274,7 @@ def gen_clock_mat(gen):
 def gen_display_mat(gen):
     gen.display_mat = np.zeros((gen.y_size,gen.x_size+2),dtype=int)
     y_size,x_size=gen.display_mat.shape
-    for x in range(0,x_size):
+    for x in range(0,2):
         for y in range(0,y_size):
             gen.display_mat[y][x] = gen.id_counter
             gen.id_counter += 1
@@ -330,12 +310,16 @@ def place_and(gen,x,y):
 
 
 def place_led(gen,x,y,x_size):
-
-    if x == (x_size-1):
-        t = gen_led(gen.display_mat[y][x],x+3,-y,[gen.display_mat[y][x-1]])
-    else:
-        t = gen_led(gen.display_mat[y][x],x+3,-y,[gen.display_mat[y][x-1],gen.display_mat[y][x+1]])
-    gen.item_list.append(t)    
+    if (x-2)%7 != 0 or y%7 != 0:
+        if (y%7 == 0 and x == 3) or(y%7 != 0 and  x == 2):
+            t = gen_led(gen.id_counter,x+3,-y,[[gen.display_mat[y][1],2]])
+        else:
+            if x == (x_size-1):
+                t = gen_led(gen.id_counter,x+3,-y,[gen.id_counter-1])
+            else:
+                t = gen_led(gen.id_counter,x+3,-y,[gen.id_counter-1,gen.id_counter+1])
+        gen.id_counter+=1
+        gen.item_list.append(t)    
 
 
 
@@ -355,15 +339,26 @@ def place_display(gen):
 
 
 
-def gen_all(flam_list):
+def gen_all(flam_list,p1):
     gen = gen_class()
     gen.read_flam(flam_list)
-
+    p1['value'] = 10
     gen_ram_mat(gen)
+    p1['value'] = 20
     gen_clock_mat(gen)
+    p1['value'] = 30
     gen_display_mat(gen)
 
+    p1['value'] = 40
     place_ram(gen)
+    place_pow(gen,0,0,-7,0,gen.flam_number//7+2)
+    p1['value'] = 50
     place_clock(gen)
+    p1['value'] = 60
     place_display(gen)
+    for y in range(0,gen.y_size):
+        if y%7 == 0:
+            place_pow(gen,5,-y,7,0,gen.x_size//7+1)
+    p1['value'] = 70
     pack_dir(gen)
+    p1['value'] = 100

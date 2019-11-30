@@ -158,6 +158,8 @@ class Main_window():
         self.vSpeed.set(10)
         self.progress = tk.IntVar()
         self.progress.set(self.vStart.get())
+        self.divid = tk.IntVar()
+        self.divid.set(2)
 
     def up_img(self):
         self.cnt = self.progress.get()
@@ -245,6 +247,24 @@ class Main_window():
         s1.grid(column=1, row=3)
         f2.pack()
 
+        l = tk.Label(f2,
+                     text="抽帧（N取1）",
+                     bg="pink",
+                     font=("Arial", 10),
+                     width=7,
+                     height=1)
+        l.grid(column=0, row=4)
+        s1 = tk.Scale(f2,
+                      from_=1,
+                      to=20,
+                      length=800,
+                      orient=tk.HORIZONTAL,
+                      variable=self.divid)
+        s1.grid(column=1, row=4)
+        f2.pack()
+
+
+
     def start_go(self):
         if self.event._flag  == False:
             self.event.set()
@@ -255,11 +275,9 @@ class Main_window():
 
     def wait_finish(self):
         if self.event._flag == False :
-            print('finish')
+            self.p1['value'] = 0
+            os.startfile(r'blue_code.txt')
             self.event.clear()
-            sl2 = tk.Toplevel()
-            nameEntered = ttk.Entry(sl2, width=50, textvariable=self.text)   
-            nameEntered.pack()
             return 0
         else:
             self.window.after(100,self.wait_finish)
@@ -274,8 +292,9 @@ class Main_window():
             n = num_dir[self.number.get()]
             size = (n, n)
             dst = cv2.resize(dst, size)
-            fl_list.append(dst)
-        gen_all(fl_list)
+            if i%self.divid.get() == 0:
+                fl_list.append(dst)
+        gen_all(fl_list,self.p1)
         self.event.clear()
 
 
