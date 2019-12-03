@@ -3,19 +3,20 @@ from trans_fun import *
 
 
 def read_flam():
-    size = 5
+    size = 32
     f1 = np.zeros((size,size),dtype=int)
-    list_ = []
     for i in range(size):
         for k in range(size):
-            f2 = copy.copy(f1)
-            f2[i][k] = 255
-            list_.append(f2)
+            f1[i][k] = 255
+    list_ = []
+    for i in range(5):
+        list_.append(f1)
     return list_
 
 
 p1 = {}
 flam_list = read_flam()
 print(flam_list)
-gen_all(flam_list,p1)
+gen_all([flam_list],p1)
 
+# print(unsigned_signed(3000000000))

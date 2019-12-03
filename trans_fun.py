@@ -4,6 +4,14 @@ from dir_fac import *
 import base64
 import zlib
 import json
+import struct
+
+
+def unsigned_signed(num):
+    bys = struct.pack('I',num)
+    out = struct.unpack('i',bys)
+    return out[0]
+
 
 
 
@@ -151,6 +159,7 @@ def split_flam(gen,flam):
             number=number << 1
             if flam[y][x] == 255:
                 number=number + 1
+        number=unsigned_signed(number)
         temp_list.append([x,number])
     for i in range(0,x_size//gen.slip_size+1):
         data_list.append(copy.copy(temp_list[i*gen.slip_size:(i+1)*gen.slip_size]))
@@ -158,15 +167,15 @@ def split_flam(gen,flam):
 
 
 
-def place_cmp(gen,x,x_size):
+def place_cmp(gen,x,x_size,off_y):
     ram_mat = gen.ram_mat
     if x == 0:
-        t=gen_cmp(ram_mat[0][x],-x,-1.5,p1_gen=[ram_mat[1][x]],p1_red=[[ram_mat[0][x+1],1],[gen.clock_mat[0][2],2]],p2_gen=[[ram_mat[0][x+1],2]],p2_red=[],costant= x)
+        t=gen_cmp(ram_mat[0][x],-x,-1.5+off_y,p1_gen=[ram_mat[1][x]],p1_red=[[ram_mat[0][x+1],1],[gen.clock_mat[0][2],2]],p2_gen=[[ram_mat[0][x+1],2]],p2_red=[],costant= x)
     else:
         if x == x_size-1:
-            t=gen_cmp(ram_mat[0][x],-x,-1.5,p1_gen=[ram_mat[1][x]],p1_red=[[ram_mat[0][x-1],1]],p2_gen=[[ram_mat[0][x-1],2]],p2_red=[],costant= x)
+            t=gen_cmp(ram_mat[0][x],-x,-1.5+off_y,p1_gen=[ram_mat[1][x]],p1_red=[[ram_mat[0][x-1],1]],p2_gen=[[ram_mat[0][x-1],2]],p2_red=[],costant= x)
         else:
-            t=gen_cmp(ram_mat[0][x],-x,-1.5,p1_gen=[ram_mat[1][x]],p1_red=[[ram_mat[0][x-1],1],[ram_mat[0][x+1],1]],p2_gen=[[ram_mat[0][x-1],2],[ram_mat[0][x-1],2]],p2_red=[],costant= x)
+            t=gen_cmp(ram_mat[0][x],-x,-1.5+off_y,p1_gen=[ram_mat[1][x]],p1_red=[[ram_mat[0][x-1],1],[ram_mat[0][x+1],1]],p2_gen=[[ram_mat[0][x-1],2],[ram_mat[0][x-1],2]],p2_red=[],costant= x)
     return copy.deepcopy(t)
 
 
@@ -189,7 +198,8 @@ def gen_const(id_,x,y,p1_gen,p1_red,p2_gen,p2_red,data_list):
     cost_dir['connections'] = copy.deepcopy(t_dir)
     connect_list = []
     for i in range(0,len(data_list)):
-        data_dir["signal"]["name"] =  sig_list[data_list[i][0]]
+        data_dir["signal"]["name"] =  sig_list[data_list[i][0]][1]
+        data_dir["signal"]["type"] =  sig_list[data_list[i][0]][0]
         data_dir["count"] = int(data_list[i][1])
         data_dir["index"] = int(i+1)
         connect_list.append(copy.deepcopy(data_dir))
@@ -206,16 +216,17 @@ def gen_led(id_,x,y,p1_gen):
     led_dir['entity_number'] = int(id_)
     led_dir['position']['x'] = int(x)
     led_dir['position']['y'] = int(y)
-    led_dir['control_behavior']['circuit_condition']['first_signal']['name'] = sig_list[x-5]
+    led_dir['control_behavior']['circuit_condition']['first_signal']['name'] = sig_list[x-5][1]
+    led_dir['control_behavior']['circuit_condition']['first_signal']['type'] = sig_list[x-5][0]
     t_dir=gen_connect(p1_gen,[],[],[])
     led_dir['connections'] = t_dir
     return copy.deepcopy(led_dir)
 
-def place_const(ram_mat,data_list,x,y,y_size):
+def place_const(ram_mat,data_list,x,y,y_size,off_y):
     if y == y_size-1:
-        t = gen_const(ram_mat[y][x],-x,y,p1_gen=[ram_mat[y-1][x]],p1_red=[],p2_gen=[],p2_red=[],data_list= data_list[y-1])
+        t = gen_const(ram_mat[y][x],-x,y+off_y,p1_gen=[ram_mat[y-1][x]],p1_red=[],p2_gen=[],p2_red=[],data_list= data_list[y-1])
     else:
-        t = gen_const(ram_mat[y][x],-x,y,p1_gen=[ram_mat[y-1][x],ram_mat[y+1][x]],p1_red=[],p2_gen=[],p2_red=[],data_list= data_list[y-1])
+        t = gen_const(ram_mat[y][x],-x,y+off_y,p1_gen=[ram_mat[y-1][x],ram_mat[y+1][x]],p1_red=[],p2_gen=[],p2_red=[],data_list= data_list[y-1])
     return copy.deepcopy(t)
 
 
@@ -229,16 +240,16 @@ def place_pow(gen,x,y,x_st,y_st,num):
         gen.item_list.append(t)
 
 
-def place_ram(gen):
+def place_ram(gen,off_y):
     y_size,x_size=gen.ram_mat.shape
     for x in range(0,x_size):
         data_list = split_flam(gen,gen.flam_list[x])
         for y in range(0,y_size):
             if y == 0:
-                t=place_cmp(gen,x,x_size)
+                t=place_cmp(gen,x,x_size,off_y)
                 gen.item_list.append(t)
             else: 
-                    t=place_const(gen.ram_mat,data_list,x,y,y_size)
+                    t=place_const(gen.ram_mat,data_list,x,y,y_size,off_y)
                     gen.item_list.append(t)
 
 
@@ -280,85 +291,90 @@ def gen_display_mat(gen):
             gen.id_counter += 1
 
 
-def place_clock(gen):
+def place_clock(gen,off_y):
     
-    t = gen_cl_s(gen.clock_mat[0][0],-5,-3.5,1,'+',p1_gen=[[gen.clock_mat[0][0],2]],p1_red=[],p2_gen= [[gen.clock_mat[0][0],1],[gen.clock_mat[0][1],1]],p2_red=[])
+    t = gen_cl_s(gen.clock_mat[0][0],-5,-3.5+off_y,1,'+',p1_gen=[[gen.clock_mat[0][0],2]],p1_red=[],p2_gen= [[gen.clock_mat[0][0],1],[gen.clock_mat[0][1],1]],p2_red=[])
     gen.item_list.append(t)
 
-    t = gen_cl(gen.clock_mat[0][1],-3,-3.5,10,'/',p1_gen=[[gen.clock_mat[0][0],2]],p1_red=[],p2_gen= [[gen.clock_mat[0][2],1]],p2_red=[])
+    t = gen_cl(gen.clock_mat[0][1],-3,-3.5+off_y,10,'/',p1_gen=[[gen.clock_mat[0][0],2]],p1_red=[],p2_gen= [[gen.clock_mat[0][2],1]],p2_red=[])
     gen.item_list.append(t)
 
-    t = gen_cl(gen.clock_mat[0][2],-1,-3.5, (gen.flam_number-1),'%',p1_gen=[[gen.clock_mat[0][1],2]],p1_red=[],p2_gen= [],p2_red=[[gen.ram_mat[0][0],1]])
+    t = gen_cl(gen.clock_mat[0][2],-1,-3.5+off_y, (gen.flam_number-1),'%',p1_gen=[[gen.clock_mat[0][1],2]],p1_red=[],p2_gen= [],p2_red=[[gen.ram_mat[0][0],1]])
     gen.item_list.append(t)
 
 
 
 
-def place_select(gen,x,y,y_size):
+def place_select(gen,x,y,y_size,off_y):
     if y == 0:
-        t = gen_cl(gen.display_mat[y][x],1.5,-y,y,'>>',p1_gen=[[gen.display_mat[y+1][x],1],[gen.ram_mat[0][x],2]],p1_red=[],p2_gen= [[gen.display_mat[y][x+1],1]],p2_red=[])
+        t = gen_cl(gen.display_mat[y][x],1.5,-y+off_y,y,'>>',p1_gen=[[gen.display_mat[y+1][x],1],[gen.ram_mat[0][x],2]],p1_red=[],p2_gen= [[gen.display_mat[y][x+1],1]],p2_red=[])
     else:
         if y == (y_size-1):
-            t = gen_cl(gen.display_mat[y][x],1.5,-y,y,'>>',p1_gen=[[gen.display_mat[y-1][x],1]],p1_red=[],p2_gen= [[gen.display_mat[y][x+1],1]],p2_red=[])
+            t = gen_cl(gen.display_mat[y][x],1.5,-y+off_y,y,'>>',p1_gen=[[gen.display_mat[y-1][x],1]],p1_red=[],p2_gen= [[gen.display_mat[y][x+1],1]],p2_red=[])
         else:
-            t = gen_cl(gen.display_mat[y][x],1.5,-y,y,'>>',p1_gen=[[gen.display_mat[y-1][x],1],[gen.display_mat[y-1][x],1]],p1_red=[],p2_gen= [[gen.display_mat[y][x+1],1]],p2_red=[])
+            t = gen_cl(gen.display_mat[y][x],1.5,-y+off_y,y,'>>',p1_gen=[[gen.display_mat[y-1][x],1],[gen.display_mat[y-1][x],1]],p1_red=[],p2_gen= [[gen.display_mat[y][x+1],1]],p2_red=[])
     gen.item_list.append(t)
 
-def place_and(gen,x,y):
-    t = gen_cl(gen.display_mat[y][x],3.5,-y,1,'AND',p1_gen=[[gen.display_mat[y][x-1],2]],p1_red=[],p2_gen= [gen.display_mat[y][x+1]],p2_red=[])
+def place_and(gen,x,y,off_y):
+    t = gen_cl(gen.display_mat[y][x],3.5,-y+off_y,1,'AND',p1_gen=[[gen.display_mat[y][x-1],2]],p1_red=[],p2_gen= [gen.display_mat[y][x+1]],p2_red=[])
     gen.item_list.append(t)
 
 
-def place_led(gen,x,y,x_size):
+def place_led(gen,x,y,x_size,off_y):
     if (x-2)%7 != 0 or y%7 != 0:
         if (y%7 == 0 and x == 3) or(y%7 != 0 and  x == 2):
-            t = gen_led(gen.id_counter,x+3,-y,[[gen.display_mat[y][1],2]])
+            t = gen_led(gen.id_counter,x+3,-y+off_y,[[gen.display_mat[y][1],2]])
         else:
             if x == (x_size-1):
-                t = gen_led(gen.id_counter,x+3,-y,[gen.id_counter-1])
+                t = gen_led(gen.id_counter,x+3,-y+off_y,[gen.id_counter-1])
             else:
-                t = gen_led(gen.id_counter,x+3,-y,[gen.id_counter-1,gen.id_counter+1])
+                t = gen_led(gen.id_counter,x+3,-y+off_y,[gen.id_counter-1,gen.id_counter+1])
         gen.id_counter+=1
         gen.item_list.append(t)    
 
 
 
 
-def place_display(gen):
+def place_display(gen,off_y):
     y_size,x_size=gen.display_mat.shape
     for y in range(0,y_size):
         for x in range(0,x_size):
             if x == 0 :
-                place_select(gen,x,y,y_size)
+                place_select(gen,x,y,y_size,off_y)
             else:
                 if x == 1:
-                    place_and(gen,x,y)
+                    place_and(gen,x,y,off_y)
                 else:
-                    place_led(gen,x,y,x_size)
+                    place_led(gen,x,y,x_size,off_y)
+
+
+
+def gen_pic(gen,flam_list,off_y):
+    gen.read_flam(flam_list)
+
+    gen_ram_mat(gen)
+    gen_clock_mat(gen)
+    gen_display_mat(gen)
+
+    place_ram(gen,off_y)
+    place_pow(gen,0,off_y,-7,0,gen.flam_number//7+2)
+    place_clock(gen,off_y)
+    place_display(gen,off_y)
+    for y in range(0,gen.y_size):
+        if y%7 == 0:
+            place_pow(gen,5,-y+off_y,7,0,gen.x_size//7+1)
 
 
 
 
 def gen_all(flam_list,p1):
     gen = gen_class()
-    gen.read_flam(flam_list)
-    p1['value'] = 10
-    gen_ram_mat(gen)
-    p1['value'] = 20
-    gen_clock_mat(gen)
-    p1['value'] = 30
-    gen_display_mat(gen)
+    if len(flam_list) == 1:
+        print(flam_list[0])
+        gen_pic(gen,flam_list[0],0)
+    else:
+        gen_pic(gen,flam_list[1],0)
+        gen_pic(gen,flam_list[0],-32)
 
-    p1['value'] = 40
-    place_ram(gen)
-    place_pow(gen,0,0,-7,0,gen.flam_number//7+2)
-    p1['value'] = 50
-    place_clock(gen)
-    p1['value'] = 60
-    place_display(gen)
-    for y in range(0,gen.y_size):
-        if y%7 == 0:
-            place_pow(gen,5,-y,7,0,gen.x_size//7+1)
-    p1['value'] = 70
+    
     pack_dir(gen)
-    p1['value'] = 100

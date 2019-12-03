@@ -296,12 +296,23 @@ class Main_window():
             self.window.after(100,self.wait_finish)
 
     def th_go(self):
-        fl_list = []
+        fl1_list = []
+        fl2_list = []
         for i in range(self.vStart.get(),self.vEnd.get()):
             im_fixed = self.do_img(i)
-            if i%self.divid.get() == 0:
-                fl_list.append(im_fixed)
-        gen_all(fl_list,self.p1)
+            x,y = im_fixed.shape
+            if x == 32:
+                if i%self.divid.get() == 0:
+                    fl1_list.append(im_fixed)
+            if x == 64:
+                if i%self.divid.get() == 0:
+                    flam1,flam2 = np.split(im_fixed,2,axis=0)
+                    fl1_list.append(flam1)
+                    fl2_list.append(flam2)
+        if x == 32:
+            gen_all([fl1_list],self.p1)
+        if x == 64:
+            gen_all([fl1_list,fl2_list],self.p1)
         self.event.clear()
 
 
