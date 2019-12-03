@@ -56,7 +56,7 @@ class Main_window():
     def __init__(self):
         self.flam_list = []
         self.window = tk.Tk()
-        self.window.title('动图转蓝图 V0.1')
+        self.window.title('动图转蓝图 V1.0')
         self.event = threading.Event()
         self.fm1 = tk.Frame(self.window)
         self.fm1 = tk.Frame(self.window)
