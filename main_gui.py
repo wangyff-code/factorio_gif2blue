@@ -29,7 +29,7 @@ sys.stderr = fp
 
 num_dir = {
     '32*32(可用)': 32,
-    '64*64(只浏览)': 64,
+    '64*64(可用)': 64,
     '128*128(只浏览)': 128,
     '256*256(只浏览)': 256,
     '512*512(只浏览)': 512
@@ -87,7 +87,7 @@ class Main_window():
                                     width=10,
                                     height=10,
                                     textvariable=self.number)
-        numberChosen['values'] = ('32*32(可用)', '64*64(只浏览)', '128*128(只浏览)',
+        numberChosen['values'] = ('32*32(可用)', '64*64(可用)', '128*128(只浏览)',
                                   '256*256(只浏览)', '512*512(只浏览)')
         numberChosen.grid(column=1, row=1)
         numberChosen.current(0)
