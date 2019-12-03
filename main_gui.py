@@ -104,7 +104,7 @@ class Main_window():
         self.v1 = tk.IntVar()
         s1 = tk.Scale(f2,
                       from_=0,
-                      to=254,
+                      to=512,
                       length=800,
                       orient=tk.HORIZONTAL,
                       variable=self.v1)
@@ -164,14 +164,7 @@ class Main_window():
 
     def up_img(self):
         self.cnt = self.progress.get()
-        gray = cv2.cvtColor(self.flam_list[self.cnt], cv2.COLOR_BGR2GRAY)
-
-        dst = cv2.bitwise_not(gray)
-        n = num_dir[self.number.get()]
-        size = (n, n)
-        dst = cv2.resize(dst, size)
-        ret, im_fixed = cv2.threshold(gray, self.v1.get(), 255,
-                                      cv2.THRESH_BINARY)
+        im_fixed = self.do_img(self.cnt)
 
         tkImage = show_tkimg(im_fixed, 300)
         self.label_img.configure(image=tkImage)
@@ -181,6 +174,23 @@ class Main_window():
             self.cnt = self.vStart.get()
         self.progress.set(self.cnt)
         self.window.after(75 - self.vSpeed.get(), lambda: self.up_img())
+
+    def do_img(self,cnt):
+        gray = cv2.cvtColor(self.flam_list[cnt], cv2.COLOR_BGR2GRAY)
+
+        dst = cv2.bitwise_not(gray)
+        n = num_dir[self.number.get()]
+        size = (n, n)
+        dst = cv2.resize(dst, size)
+        if self.v1.get() <=255:
+            ret, im_fixed = cv2.threshold(dst, self.v1.get(), 255,
+                                      cv2.THRESH_BINARY)
+            im_fixed = cv2.bitwise_not(im_fixed)
+        else:
+            ret, im_fixed = cv2.threshold(dst, 512-self.v1.get(), 255,
+                                      cv2.THRESH_BINARY)
+
+        return im_fixed
 
     def set_adv(self):
         self.sl1 = tk.Toplevel()
@@ -288,14 +298,7 @@ class Main_window():
     def th_go(self):
         fl_list = []
         for i in range(self.vStart.get(),self.vEnd.get()):
-            gray = cv2.cvtColor(self.flam_list[self.cnt], cv2.COLOR_BGR2GRAY)
-            
-            dst = cv2.bitwise_not(gray)
-            n = num_dir[self.number.get()]
-            size = (n, n)
-            dst = cv2.resize(dst, size)
-            ret, im_fixed = cv2.threshold(dst, self.v1.get(), 255,
-                                      cv2.THRESH_BINARY)
+            im_fixed = self.do_img(i)
             if i%self.divid.get() == 0:
                 fl_list.append(im_fixed)
         gen_all(fl_list,self.p1)

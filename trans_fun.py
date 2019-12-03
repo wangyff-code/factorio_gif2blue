@@ -153,7 +153,7 @@ def split_flam(gen,flam):
                 number=number + 1
         temp_list.append([x,number])
     for i in range(0,x_size//gen.slip_size+1):
-        data_list.append(temp_list[i*gen.slip_size:(i+1)*gen.slip_size])
+        data_list.append(copy.copy(temp_list[i*gen.slip_size:(i+1)*gen.slip_size]))
     return data_list
 
 
