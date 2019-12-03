@@ -161,12 +161,12 @@ def split_flam(gen,flam):
 def place_cmp(gen,x,x_size):
     ram_mat = gen.ram_mat
     if x == 0:
-        t=gen_cmp(ram_mat[0][x],-x,-1.5,p1_gen=[ram_mat[1][x]],p1_red=[[ram_mat[0][x+1],1],[gen.clock_mat[0][2],2]],p2_gen=[[ram_mat[0][x+1],2]],p2_red=[],costant= x+1)
+        t=gen_cmp(ram_mat[0][x],-x,-1.5,p1_gen=[ram_mat[1][x]],p1_red=[[ram_mat[0][x+1],1],[gen.clock_mat[0][2],2]],p2_gen=[[ram_mat[0][x+1],2]],p2_red=[],costant= x)
     else:
         if x == x_size-1:
-            t=gen_cmp(ram_mat[0][x],-x,-1.5,p1_gen=[ram_mat[1][x]],p1_red=[[ram_mat[0][x-1],1]],p2_gen=[[ram_mat[0][x-1],2]],p2_red=[],costant= x+1)
+            t=gen_cmp(ram_mat[0][x],-x,-1.5,p1_gen=[ram_mat[1][x]],p1_red=[[ram_mat[0][x-1],1]],p2_gen=[[ram_mat[0][x-1],2]],p2_red=[],costant= x)
         else:
-            t=gen_cmp(ram_mat[0][x],-x,-1.5,p1_gen=[ram_mat[1][x]],p1_red=[[ram_mat[0][x-1],1],[ram_mat[0][x+1],1]],p2_gen=[[ram_mat[0][x-1],2],[ram_mat[0][x-1],2]],p2_red=[],costant= x+1)
+            t=gen_cmp(ram_mat[0][x],-x,-1.5,p1_gen=[ram_mat[1][x]],p1_red=[[ram_mat[0][x-1],1],[ram_mat[0][x+1],1]],p2_gen=[[ram_mat[0][x-1],2],[ram_mat[0][x-1],2]],p2_red=[],costant= x)
     return copy.deepcopy(t)
 
 
@@ -285,10 +285,10 @@ def place_clock(gen):
     t = gen_cl_s(gen.clock_mat[0][0],-5,-3.5,1,'+',p1_gen=[[gen.clock_mat[0][0],2]],p1_red=[],p2_gen= [[gen.clock_mat[0][0],1],[gen.clock_mat[0][1],1]],p2_red=[])
     gen.item_list.append(t)
 
-    t = gen_cl(gen.clock_mat[0][1],-3,-3.5,20,'/',p1_gen=[[gen.clock_mat[0][0],2]],p1_red=[],p2_gen= [[gen.clock_mat[0][2],1]],p2_red=[])
+    t = gen_cl(gen.clock_mat[0][1],-3,-3.5,10,'/',p1_gen=[[gen.clock_mat[0][0],2]],p1_red=[],p2_gen= [[gen.clock_mat[0][2],1]],p2_red=[])
     gen.item_list.append(t)
 
-    t = gen_cl(gen.clock_mat[0][2],-1,-3.5, (gen.flam_number),'%',p1_gen=[[gen.clock_mat[0][1],2]],p1_red=[],p2_gen= [],p2_red=[[gen.ram_mat[0][0],1]])
+    t = gen_cl(gen.clock_mat[0][2],-1,-3.5, (gen.flam_number-1),'%',p1_gen=[[gen.clock_mat[0][1],2]],p1_red=[],p2_gen= [],p2_red=[[gen.ram_mat[0][0],1]])
     gen.item_list.append(t)
 
 
