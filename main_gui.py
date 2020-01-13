@@ -30,6 +30,7 @@ sys.stderr = fp
 num_dir = {
     '32*32(可用)': 32,
     '64*64(可用)': 64,
+    '96*96(可用)': 96,
     '128*128(只浏览)': 128,
     '256*256(只浏览)': 256,
     '512*512(只浏览)': 512
@@ -87,7 +88,7 @@ class Main_window():
                                     width=10,
                                     height=10,
                                     textvariable=self.number)
-        numberChosen['values'] = ('32*32(可用)', '64*64(可用)', '128*128(只浏览)',
+        numberChosen['values'] = ('32*32(可用)', '64*64(可用)', '96*96(可用)','128*128(只浏览)',
                                   '256*256(只浏览)', '512*512(只浏览)')
         numberChosen.grid(column=1, row=1)
         numberChosen.current(0)
@@ -298,6 +299,7 @@ class Main_window():
     def th_go(self):
         fl1_list = []
         fl2_list = []
+        fl3_list = []
         for i in range(self.vStart.get(),self.vEnd.get()):
             im_fixed = self.do_img(i)
             x,y = im_fixed.shape
@@ -309,10 +311,18 @@ class Main_window():
                     flam1,flam2 = np.split(im_fixed,2,axis=0)
                     fl1_list.append(flam1)
                     fl2_list.append(flam2)
+            if x == 96:
+                if i%self.divid.get() == 0:
+                    flam1,flam2,flam3 = np.split(im_fixed,3,axis=0)
+                    fl1_list.append(flam1)
+                    fl2_list.append(flam2)
+                    fl3_list.append(flam3)
         if x == 32:
             gen_all([fl1_list],self.p1)
         if x == 64:
             gen_all([fl1_list,fl2_list],self.p1)
+        if x == 96:
+            gen_all([fl1_list,fl2_list,fl3_list],self.p1)
         self.event.clear()
 
 

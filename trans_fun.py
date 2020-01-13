@@ -370,11 +370,14 @@ def gen_pic(gen,flam_list,off_y):
 def gen_all(flam_list,p1):
     gen = gen_class()
     if len(flam_list) == 1:
-        print(flam_list[0])
         gen_pic(gen,flam_list[0],0)
-    else:
+    if len(flam_list) == 2:
         gen_pic(gen,flam_list[1],0)
         gen_pic(gen,flam_list[0],-32)
+    if len(flam_list) == 3:
+        gen_pic(gen,flam_list[2],0)
+        gen_pic(gen,flam_list[1],-32)
+        gen_pic(gen,flam_list[0],-64)
 
     
     pack_dir(gen)
