@@ -57,7 +57,7 @@ class Main_window():
     def __init__(self):
         self.flam_list = []
         self.window = tk.Tk()
-        self.window.title('动图转蓝图 V1.3')
+        self.window.title('GIF转蓝图V1.4.1')
         self.event = threading.Event()
         self.fm1 = tk.Frame(self.window)
         self.fm1 = tk.Frame(self.window)
@@ -174,7 +174,7 @@ class Main_window():
         if self.cnt >= self.vEnd.get():
             self.cnt = self.vStart.get()
         self.progress.set(self.cnt)
-        self.window.after(75 - self.vSpeed.get(), lambda: self.up_img())
+        self.window.after(175 - self.vSpeed.get(), lambda: self.up_img())
 
     def do_img(self,cnt):
         gray = cv2.cvtColor(self.flam_list[cnt], cv2.COLOR_BGR2GRAY)
@@ -238,7 +238,7 @@ class Main_window():
         l.grid(column=0, row=2)
         s1 = tk.Scale(f2,
                       from_=1,
-                      to=40,
+                      to=170,
                       length=800,
                       orient=tk.HORIZONTAL,
                       variable=self.vSpeed)
