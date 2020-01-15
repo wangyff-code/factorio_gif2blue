@@ -31,7 +31,8 @@ num_dir = {
     '32*32(可用)': 32,
     '64*64(可用)': 64,
     '96*96(可用)': 96,
-    '128*128(只浏览)': 128,
+    '128*128(可用)': 128,
+    '160*160(可用)': 160,
     '256*256(只浏览)': 256,
     '512*512(只浏览)': 512
 }
@@ -88,7 +89,7 @@ class Main_window():
                                     width=10,
                                     height=10,
                                     textvariable=self.number)
-        numberChosen['values'] = ('32*32(可用)', '64*64(可用)', '96*96(可用)','128*128(只浏览)',
+        numberChosen['values'] = ('32*32(可用)', '64*64(可用)', '96*96(可用)','128*128(可用)','160*160(可用)',
                                   '256*256(只浏览)', '512*512(只浏览)')
         numberChosen.grid(column=1, row=1)
         numberChosen.current(0)
@@ -300,6 +301,8 @@ class Main_window():
         fl1_list = []
         fl2_list = []
         fl3_list = []
+        fl4_list = []
+        fl5_list = []
         for i in range(self.vStart.get(),self.vEnd.get()):
             im_fixed = self.do_img(i)
             x,y = im_fixed.shape
@@ -317,12 +320,31 @@ class Main_window():
                     fl1_list.append(flam1)
                     fl2_list.append(flam2)
                     fl3_list.append(flam3)
+            if x == 128:
+                if i%self.divid.get() == 0:
+                    flam1,flam2,flam3,flam4 = np.split(im_fixed,4,axis=0)
+                    fl1_list.append(flam1)
+                    fl2_list.append(flam2)
+                    fl3_list.append(flam3)
+                    fl4_list.append(flam4)
+            if x == 160:
+                if i%self.divid.get() == 0:
+                    flam1,flam2,flam3,flam4,flam5 = np.split(im_fixed,5,axis=0)
+                    fl1_list.append(flam1)
+                    fl2_list.append(flam2)
+                    fl3_list.append(flam3)
+                    fl4_list.append(flam4)
+                    fl5_list.append(flam5)
         if x == 32:
             gen_all([fl1_list],self.p1)
         if x == 64:
             gen_all([fl1_list,fl2_list],self.p1)
         if x == 96:
             gen_all([fl1_list,fl2_list,fl3_list],self.p1)
+        if x == 128:
+            gen_all([fl1_list,fl2_list,fl3_list,fl4_list],self.p1)
+        if x == 160:
+            gen_all([fl1_list,fl2_list,fl3_list,fl4_list,fl5_list],self.p1)
         self.event.clear()
 
 

@@ -378,6 +378,15 @@ def gen_all(flam_list,p1):
         gen_pic(gen,flam_list[2],0)
         gen_pic(gen,flam_list[1],-32)
         gen_pic(gen,flam_list[0],-64)
-
-    
+    if len(flam_list) == 4:
+        gen_pic(gen,flam_list[3],0)
+        gen_pic(gen,flam_list[2],-32)
+        gen_pic(gen,flam_list[1],-64)
+        gen_pic(gen,flam_list[0],-96)
+    if len(flam_list) == 5:
+        gen_pic(gen,flam_list[4],0)
+        gen_pic(gen,flam_list[3],-32)
+        gen_pic(gen,flam_list[2],-64)
+        gen_pic(gen,flam_list[1],-96)
+        gen_pic(gen,flam_list[0],-128)
     pack_dir(gen)
