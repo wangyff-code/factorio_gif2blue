@@ -1,0 +1,9 @@
+Exception in Tkinter callback
+Traceback (most recent call last):
+  File "C:\Users\60957\AppData\Local\Programs\Python\Python37-32\lib\tkinter\__init__.py", line 1702, in __call__
+    return self.func(*args)
+  File "f:\git\factorio_gif2blue\main_gui.py", line 68, in <lambda>
+    fmenu1.add_command(label=item, command=lambda: self.openfiles())
+  File "f:\git\factorio_gif2blue\main_gui.py", line 148, in openfiles
+    ret, frame = cap.read()
+NameError: name 'cap' is not defined

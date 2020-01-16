@@ -58,7 +58,7 @@ class Main_window():
     def __init__(self):
         self.flam_list = []
         self.window = tk.Tk()
-        self.window.title('GIF转蓝图V1.4.1')
+        self.window.title('GIF转蓝图V1.5.0')
         self.event = threading.Event()
         self.fm1 = tk.Frame(self.window)
         self.fm1 = tk.Frame(self.window)
@@ -138,23 +138,30 @@ class Main_window():
             path,tepname = os.path.split(s2fname)
             temp_f = tp.name+'/'+tepname
             copyfile(s2fname,temp_f)
-            cap = cv2.VideoCapture(temp_f)
-            self.flam_list = []
+            self.cap = cv2.VideoCapture(temp_f)
+            self.fps = self.cap.get(cv2.CAP_PROP_FPS)
             self.cnt = 0
-            while True:
-                ret, frame = cap.read()
-                if ret == True:
-                    self.flam_list.append(frame)
-                else:
-                    break
-            self.flm_len = len(self.flam_list)
-
+            self.fram_list = []
+            self.gif_type = True
+            if temp_f.find('gif') == -1:
+                self.gif_type = False
+                self.flm_len = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
+            else:
+                while True:
+                    ret, frame = self.cap.read()
+                    if ret == True:
+                        self.fram_list.append(frame)
+                    else:
+                        break
+                self.flm_len = len(self.fram_list)
+            self.cnt = 1
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES,0)
             self.ini_vluble()
             self.up_img()
 
     def ini_vluble(self):
         self.vStart = tk.IntVar()
-        self.vStart.set(0)
+        self.vStart.set(1)
         self.vEnd = tk.IntVar()
         self.vEnd.set(self.flm_len)
         self.vSpeed = tk.IntVar()
@@ -167,7 +174,6 @@ class Main_window():
     def up_img(self):
         self.cnt = self.progress.get()
         im_fixed = self.do_img(self.cnt)
-
         tkImage = show_tkimg(im_fixed, 300)
         self.label_img.configure(image=tkImage)
         self.label_img.image = tkImage
@@ -178,8 +184,12 @@ class Main_window():
         self.window.after(175 - self.vSpeed.get(), lambda: self.up_img())
 
     def do_img(self,cnt):
-        gray = cv2.cvtColor(self.flam_list[cnt], cv2.COLOR_BGR2GRAY)
-
+        if self.gif_type == False:
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES,cnt)
+            ret, frame = self.cap.read()
+        else:
+            frame = self.fram_list[cnt]
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         dst = cv2.bitwise_not(gray)
         n = num_dir[self.number.get()]
         size = (n, n)
@@ -191,7 +201,6 @@ class Main_window():
         else:
             ret, im_fixed = cv2.threshold(dst, 512-self.v1.get(), 255,
                                       cv2.THRESH_BINARY)
-
         return im_fixed
 
     def set_adv(self):
@@ -208,7 +217,7 @@ class Main_window():
                      height=1)
         l.grid(column=0, row=0)
         s1 = tk.Scale(f2,
-                      from_=0,
+                      from_=1,
                       to=self.flm_len,
                       length=800,
                       orient=tk.HORIZONTAL,
@@ -223,7 +232,7 @@ class Main_window():
                      height=1)
         l.grid(column=0, row=1)
         s1 = tk.Scale(f2,
-                      from_=0,
+                      from_=1,
                       to=self.flm_len,
                       length=800,
                       orient=tk.HORIZONTAL,
